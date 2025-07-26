@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -9,66 +8,44 @@
 </head>
 <body>
   <div id="start-screen">
-    <h1>🧠 Hauptstadt-Ratespiel 🌍</h1>
+    <h1>🌍 Hauptstadt-Quiz</h1>
+    <label>👤 Name:</label><br>
+    <input type="text" id="player-name" placeholder="Name eingeben"><br><br>
 
-    <label for="player-name">👤 Dein Name:</label><br/>
-    <input type="text" id="player-name" placeholder="Name eingeben"/><br/><br/>
-
-    <label for="region-select">🌎 Region wählen:</label><br/>
+    <label>🌎 Region:</label><br>
     <select id="region-select">
-      <option value="world">Alle</option>
+      <option value="world">Welt</option>
       <option value="europe">Europa</option>
-      <option value="america">Amerika</option>
       <option value="asia">Asien</option>
       <option value="africa">Afrika</option>
-    </select><br/><br/>
+      <option value="america">Amerika</option>
+    </select><br><br>
 
-    <label for="game-mode">📊 Spielmodus:</label><br/>
-    <select id="game-mode">
-      <option value="capital">Hauptstadt</option>
-      <option value="population">Bevölkerung</option>
-      <option value="area">Fläche</option>
-      <option value="gdp">BIP</option>
-    </select><br/><br/>
+    <label>🎮 Modus:</label><br>
+    <select id="quiz-mode">
+      <option value="multiple">Multiple Choice</option>
+      <option value="text">Texteingabe</option>
+    </select><br><br>
 
-    <label for="special-mode">🎮 Spezial-Modus:</label><br/>
-    <select id="special-mode">
-      <option value="normal">Normal</option>
-      <option value="blitz">⏱️ Blitzrunde (10s Zeit)</option>
-      <option value="lifes">❤️ Fehler-Modus (3 Leben)</option>
-      <option value="suddendeath">☠️ Sudden Death</option>
-      <option value="reverse">🔄 Rückwärts (Stadt → Land)</option>
-    </select><br/><br/>
-
-    <label for="question-count">🧮 Wie viele Fragen?</label><br/>
-    <input type="number" id="question-count" min="1" placeholder="z. B. 10"/><br/><br/>
-
-    <label><input type="checkbox" id="show-facts"> 📘 Fakten nach der Frage anzeigen</label><br/><br/>
-
-    <button id="start-multiple">Starte mit Auswahl</button>
-    <button id="start-input">Starte mit Texteingabe</button>
+    <button id="start-btn">Start</button>
   </div>
 
   <div id="quiz-screen" style="display:none;">
     <div id="top-bar">
-      <div id="timer">🕒 0 Sekunden</div>
-      <div id="lives-display"></div>
-      <div id="mode-display"></div>
+      <div id="player-display"></div>
+      <div id="timer-display">🕒 0s</div>
     </div>
-    <h2 id="question-box">Frage erscheint hier...</h2>
-    <div id="answer-box"></div>
-    <div id="fact-box" style="display:none; font-style: italic; color: #555;"></div>
-    <button id="next-button" style="display:none;">Nächste Frage</button>
+    <h2 id="question"></h2>
+    <div id="answer-area"></div>
+    <button id="next-btn" style="display:none;">Nächste Frage</button>
   </div>
 
   <div id="result-screen" style="display:none;">
     <h2>🎉 Ergebnis</h2>
-    <p id="score-text"></p>
-    <p id="time-text"></p>
-    <p id="surprise-text" style="font-weight:bold; color:green;"></p>
-    <button id="restart-button">🔁 Neustarten</button>
+    <p id="result-text"></p>
+    <button onclick="location.reload()">🔁 Neustart</button>
   </div>
 
-  <script src="quiz.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
