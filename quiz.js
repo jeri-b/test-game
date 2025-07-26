@@ -1,3 +1,4 @@
+// Alle Länder & Hauptstädte, sortiert nach Regionen
 const allCountries = {
   Europe: {
     "Deutschland": "Berlin",
@@ -20,40 +21,117 @@ const allCountries = {
     "Rumänien": "Bukarest",
     "Bulgarien": "Sofia",
     "Kroatien": "Zagreb",
-    "Serbien": "Belgrad"
+    "Serbien": "Belgrad",
+    "Irland": "Dublin",
+    "Island": "Reykjavik",
+    "Slowakei": "Bratislava",
+    "Slowenien": "Ljubljana",
+    "Estland": "Tallinn",
+    "Lettland": "Riga",
+    "Litauen": "Vilnius",
+    "Moldawien": "Chisinau",
+    "Albanien": "Tirana",
+    "Nordmazedonien": "Skopje",
+    "Bosnien und Herzegowina": "Sarajevo",
+    "Weißrussland": "Minsk",
+    "Ukraine": "Kiew",
+    "Luxemburg": "Luxemburg",
+    "Malta": "Valletta",
+    "Monaco": "Monaco",
+    "Liechtenstein": "Vaduz",
+    "Andorra": "Andorra la Vella",
+    "San Marino": "San Marino",
+    "Vatikanstadt": "Vatikanstadt"
   },
   America: {
     "USA": "Washington",
     "Kanada": "Ottawa",
     "Brasilien": "Brasília",
     "Argentinien": "Buenos Aires",
-    "Mexiko": "Mexiko-Stadt"
+    "Mexiko": "Mexiko-Stadt",
+    "Kolumbien": "Bogotá",
+    "Chile": "Santiago",
+    "Peru": "Lima",
+    "Venezuela": "Caracas",
+    "Ecuador": "Quito",
+    "Bolivien": "Sucre",
+    "Paraguay": "Asunción",
+    "Uruguay": "Montevideo",
+    "Costa Rica": "San José",
+    "Kuba": "Havanna",
+    "Dominikanische Republik": "Santo Domingo",
+    "Honduras": "Tegucigalpa",
+    "Guatemala": "Guatemala-Stadt",
+    "Nicaragua": "Managua",
+    "Panama": "Panama-Stadt"
   },
   Asia: {
     "China": "Peking",
     "Japan": "Tokio",
-    "Indien": "Neu-Delhi"
+    "Indien": "Neu-Delhi",
+    "Russland": "Moskau",
+    "Indonesien": "Jakarta",
+    "Saudi-Arabien": "Riad",
+    "Südkorea": "Seoul",
+    "Malaysia": "Kuala Lumpur",
+    "Vietnam": "Hanoi",
+    "Thailand": "Bangkok",
+    "Philippinen": "Manila",
+    "Irak": "Bagdad",
+    "Iran": "Teheran",
+    "Israel": "Jerusalem",
+    "Libanon": "Beirut",
+    "Jordanien": "Amman",
+    "Türkei": "Ankara",
+    "Pakistan": "Islamabad",
+    "Bangladesch": "Dhaka",
+    "Singapur": "Singapur",
+    "Katar": "Doha",
+    "Nepal": "Kathmandu",
+    "Sri Lanka": "Sri Jayawardenepura Kotte",
+    "Mongolei": "Ulaanbaatar"
   },
   Africa: {
     "Ägypten": "Kairo",
     "Nigeria": "Abuja",
     "Südafrika": "Pretoria",
-    "Kenia": "Nairobi"
+    "Kenia": "Nairobi",
+    "Algerien": "Algier",
+    "Marokko": "Rabat",
+    "Tunesien": "Tunis",
+    "Sudan": "Khartum",
+    "Äthiopien": "Addis Abeba",
+    "Ghana": "Accra",
+    "Tansania": "Dodoma",
+    "Uganda": "Kampala",
+    "Angola": "Luanda",
+    "Mosambik": "Maputo",
+    "Madagaskar": "Antananarivo",
+    "Kamerun": "Jaunde",
+    "Elfenbeinküste": "Yamoussoukro",
+    "Senegal": "Dakar",
+    "Botswana": "Gaborone",
+    "Namibia": "Windhoek",
+    "Zambia": "Lusaka",
+    "Zimbabwe": "Harare"
   }
 };
 
+// Globale Variablen
 let countries = {};
 let keys = [];
 let currentIndex = 0;
 let score = 0;
 let player = "";
-let mode = "";
+let mode = ""; // "multiple" oder "input"
 let maxQuestions = 0;
 let startTime;
 let timerInterval;
-let specialMode = "normal";
+let specialMode = "normal"; // normal, blitz, lifes, reverse
 let lives = 3;
 let reverse = false;
+
+// --- Funktionen ---
 
 function startGame(selectedMode) {
   mode = selectedMode;
@@ -66,15 +144,16 @@ function startGame(selectedMode) {
     alert("Bitte gib deinen Namen ein.");
     return;
   }
-
   player = playerInput.trim();
 
+  // Länder laden nach Region
   countries = {};
   if (region === "world") {
     for (const reg in allCountries) {
       Object.assign(countries, allCountries[reg]);
     }
   } else {
+    // Großschreibung erste Buchstabe
     const regKey = region.charAt(0).toUpperCase() + region.slice(1);
     countries = allCountries[regKey] || {};
   }
@@ -83,11 +162,17 @@ function startGame(selectedMode) {
   maxQuestions = inputCount ? parseInt(inputCount) : keys.length;
   keys = shuffle([...keys]).slice(0, maxQuestions);
 
+  reverse = false;
+  lives = 3;
   if (specialMode === "reverse") reverse = true;
   if (specialMode === "lifes") lives = 3;
 
   document.getElementById("start-screen").style.display = "none";
   document.getElementById("quiz-screen").style.display = "block";
+  document.getElementById("result-screen").style.display = "none";
+
+  score = 0;
+  currentIndex = 0;
   startTime = Date.now();
   timerInterval = setInterval(updateTimer, 1000);
 
@@ -116,18 +201,26 @@ function nextQuestion() {
     return endGame();
   }
 
-  const land = keys[currentIndex];
-  const hauptstadt = countries[land];
+  let frage = "";
+  let land = keys[currentIndex];
+  let hauptstadt = countries[land];
 
-  let frage = reverse ? `Zu welcher Stadt gehört das Land "${hauptstadt}"?` : `Was ist die Hauptstadt von ${land}?`;
+  if (reverse) {
+    // Frage: Stadt vorgegeben, Land gesucht
+    frage = `Welches Land hat die Hauptstadt "${hauptstadt}"?`;
+  } else {
+    frage = `Was ist die Hauptstadt von ${land}?`;
+  }
+
   document.getElementById("question-box").innerText = frage;
 
   if (mode === "multiple") {
-    let options = shuffle([hauptstadt, ...getRandomCities(hauptstadt)]);
+    let correctAnswer = reverse ? land : hauptstadt;
+    let options = shuffle([correctAnswer, ...getRandomAnswers(correctAnswer)]);
     options.forEach(opt => {
       const btn = document.createElement("button");
       btn.innerText = opt;
-      btn.onclick = () => checkAnswer(opt, hauptstadt);
+      btn.onclick = () => checkAnswer(opt, correctAnswer);
       box.appendChild(btn);
     });
   } else {
@@ -140,41 +233,70 @@ function nextQuestion() {
 
     const submit = document.createElement("button");
     submit.innerText = "Antwort prüfen";
-    submit.onclick = () => checkAnswer(input.value, hauptstadt);
+    submit.onclick = () => {
+      const val = document.getElementById("text-input").value;
+      checkAnswer(val, reverse ? land : hauptstadt);
+    };
     box.appendChild(submit);
   }
 
   if (specialMode === "blitz") {
     setTimeout(() => {
       if (document.getElementById("next-button").style.display === "none") {
-        checkAnswer("", hauptstadt);
+        // Zeit abgelaufen, Antwort leer
+        checkAnswer("", reverse ? land : hauptstadt);
       }
     }, 10000);
   }
 }
 
-function getRandomCities(correct) {
-  const vals = Object.values(countries).filter(c => c !== correct);
-  return shuffle(vals).slice(0, 3);
+function getRandomAnswers(correct) {
+  // 3 falsche Antworten rausfiltern
+  let allAnswers = reverse ? Object.keys(countries) : Object.values(countries);
+  allAnswers = allAnswers.filter(a => a !== correct);
+  return shuffle(allAnswers).slice(0, 3);
 }
 
 function normalize(str) {
-  return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
 }
 
 function checkAnswer(given, correct) {
-  const isCorrect = normalize(given).includes(normalize(correct).substring(0, 4));
-  if (isCorrect) score++;
-  else if (specialMode === "lifes") lives--;
+  given = given.trim();
+  const normalizedGiven = normalize(given);
+  const normalizedCorrect = normalize(correct);
+
+  // Kleine Toleranz: Antwort gilt als richtig, wenn:
+  // - sie gleich ist (normalisiert)
+  // - oder die Antwort einen großen Teil des korrekten Namens enthält (4 Zeichen)
+  // Beispiel: "berlin" vs "berlin", "berl" reicht
+  let isCorrect = false;
+  if (normalizedGiven === normalizedCorrect) isCorrect = true;
+  else if (
+    normalizedCorrect.includes(normalizedGiven) && normalizedGiven.length >= 4
+  ) isCorrect = true;
+
+  if (isCorrect) {
+    score++;
+  } else if (specialMode === "lifes") {
+    lives--;
+  }
 
   currentIndex++;
   document.getElementById("next-button").style.display = "inline-block";
 
   const box = document.getElementById("answer-box");
   const msg = document.createElement("p");
-  msg.innerText = isCorrect ? "✅ Richtig!" : `❌ Falsch! Richtig wäre: ${correct}`;
+  msg.innerText = isCorrect
+    ? "✅ Richtig!"
+    : `❌ Falsch! Die richtige Antwort ist: ${correct}`;
   msg.style.fontWeight = "bold";
   box.appendChild(msg);
+
+  if (specialMode === "lifes") {
+    const livesDisplay = document.getElementById("lives-display");
+    if (livesDisplay) livesDisplay.innerText = `❤️ Leben: ${lives}`;
+  }
 }
 
 function endGame() {
@@ -182,16 +304,37 @@ function endGame() {
   document.getElementById("quiz-screen").style.display = "none";
   document.getElementById("result-screen").style.display = "block";
   const seconds = Math.floor((Date.now() - startTime) / 1000);
-  document.getElementById("score-text").innerText = `${player}, du hast ${score} von ${keys.length} richtig.`;
+
+  document.getElementById("score-text").innerText = `${player}, du hast ${score} von ${keys.length} richtig beantwortet.`;
   document.getElementById("time-text").innerText = `⏱️ Zeit: ${seconds} Sekunden`;
 
-  const best = localStorage.getItem("hauptstadtquiz_best");
-  const thisResult = `${score} Punkte in ${seconds} Sek.`;
-
-  if (!best || score > parseInt(best.split(" ")[0])) {
-    localStorage.setItem("hauptstadtquiz_best", thisResult);
-    document.getElementById("best-result").innerText = `🏅 Neuer Highscore! (${thisResult})`;
+  // Überraschung, wenn 100% Punkte
+  if (score === keys.length) {
+    document.getElementById("surprise-text").innerText =
+      "🎉 Perfekt! Du bist ein Hauptstadt-Profi! 🌟";
   } else {
-    document.getElementById("best-result").innerText = `🔁 Bester Versuch bisher: ${best}`;
+    document.getElementById("surprise-text").innerText = "";
   }
 }
+
+function restartGame() {
+  document.getElementById("result-screen").style.display = "none";
+  document.getElementById("start-screen").style.display = "block";
+  document.getElementById("timer").innerText = "🕒 0 Sekunden";
+  document.getElementById("lives-display").innerText = "";
+  // Felder zurücksetzen optional
+  document.getElementById("question-count").value = "";
+  document.getElementById("player-name").value = "";
+  document.getElementById("special-mode").value = "normal";
+  document.getElementById("region-select").value = "world";
+  score = 0;
+  currentIndex = 0;
+  reverse = false;
+  lives = 3;
+}
+
+// --- Eventlistener für Buttons ---
+document.getElementById("start-multiple").addEventListener("click", () => startGame("multiple"));
+document.getElementById("start-input").addEventListener("click", () => startGame("input"));
+document.getElementById("next-button").addEventListener("click", () => nextQuestion());
+document.getElementById("restart-button").addEventListener("click", () => restartGame());
