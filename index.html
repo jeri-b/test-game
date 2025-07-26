@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>🌍 Hauptstadtquiz</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container" id="start-screen">
+    <h1>🌍 Hauptstadtquiz</h1>
+    <p>Wie heißt du?</p>
+    <input type="text" id="player-name" placeholder="Dein Name" />
+
+    <p>Wähle deinen Spielmodus:</p>
+    <button onclick="startGame('multiple')">🟢 Einfach (Multiple Choice)</button>
+    <button onclick="startGame('text')">🔴 Schwer (Eingabe)</button>
+
+    <p>Welche Länder willst du?</p>
+    <select id="region-select">
+      <option value="world">🌍 Alle Länder</option>
+      <option value="europe">🇪🇺 Europa</option>
+      <option value="america">🌎 Amerika</option>
+      <option value="asia">🌏 Asien</option>
+      <option value="africa">🌍 Afrika</option>
+    </select>
+
+    <p>Anzahl der Fragen:</p>
+    <input type="number" id="question-count" min="1" placeholder="z. B. 10 oder leer für alle" />
+
+    <p>Spezialmodus:</p>
+    <select id="special-mode">
+      <option value="normal">🎯 Normal</option>
+      <option value="blitz">⚡ Blitzrunde (10 Sek)</option>
+      <option value="lifes">❤️ Fehler-Modus (3 Leben)</option>
+      <option value="reverse">🔁 Rückwärts (Hauptstadt → Land)</option>
+    </select>
+  </div>
+
+  <div class="container" id="quiz-screen" style="display: none;">
+    <div id="timer">🕒 0 Sekunden</div>
+    <div id="question-box"></div>
+    <div id="answer-box"></div>
+    <button id="next-button" onclick="nextQuestion()" style="display:none;">Nächste Frage</button>
+  </div>
+
+  <div class="container" id="result-screen" style="display: none;">
+    <h2>🎉 Fertig!</h2>
+    <p id="score-text"></p>
+    <p id="time-text"></p>
+    <p id="best-result"></p>
+    <button onclick="location.reload()">🔁 Neu starten</button>
+  </div>
+
+  <script src="quiz.js"></script>
+</body>
+</html>
