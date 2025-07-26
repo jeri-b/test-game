@@ -14,6 +14,7 @@ const countries = [
 ];
 
 const randomNames = ["Lena", "Ben", "Mila", "Jonas", "Emma", "Luca", "Sophie", "Elias", "Lina", "Noah"];
+
 let selectedMode = "capital";
 let specialMode = "normal";
 let totalQuestions = 10;
@@ -44,11 +45,11 @@ function stopTimer() {
 }
 
 function initGame() {
-  const modeSelect = document.getElementById("mode");
-  const specialSelect = document.getElementById("special");
-  const nameInput = document.getElementById("name");
-  const amountInput = document.getElementById("amount");
-  const factsCheckbox = document.getElementById("facts");
+  const modeSelect = document.getElementById("game-mode");
+  const specialSelect = document.getElementById("special-mode");
+  const nameInput = document.getElementById("player-name");
+  const amountInput = document.getElementById("question-count");
+  const factsCheckbox = document.getElementById("show-facts");
 
   selectedMode = modeSelect.value;
   specialMode = specialSelect.value;
@@ -60,15 +61,22 @@ function initGame() {
     playerName = randomNames[Math.floor(Math.random() * randomNames.length)];
   }
 
-  document.getElementById("intro").style.display = "none";
-  document.getElementById("quiz").style.display = "block";
-  document.getElementById("modeDisplay").textContent = `Modus: ${selectedMode} | Spezial: ${specialMode}`;
-  document.getElementById("playerDisplay").textContent = `Spieler: ${playerName}`;
+  document.getElementById("start-screen").style.display = "none";
+  document.getElementById("quiz-screen").style.display = "block";
+  document.getElementById("result-screen").style.display = "none";
+
+  document.getElementById("mode-display").textContent = `Modus: ${selectedMode} | Spezial: ${specialMode}`;
   document.getElementById("timer").textContent = "🕒 0 Sekunden";
+
   score = 0;
   currentIndex = 0;
-  lives = 1; // for sudden death
+  lives = specialMode === "lifes" ? 3 : 1; // 3 Leben nur im Lebens-Modus
   questions = shuffle(countries).slice(0, totalQuestions);
+
+  // Setup feedback & inputs
+  document.getElementById("feedback").textContent = "";
+  document.getElementById("next-button").style.display = "none";
+
   startTimer();
   showQuestion();
 }
@@ -79,52 +87,72 @@ function showQuestion() {
   const input = document.getElementById("answerInput");
   const options = document.getElementById("answerOptions");
   const feedback = document.getElementById("feedback");
+  const factBox = document.getElementById("fact-box");
 
   feedback.textContent = "";
+  factBox.style.display = "none";
+  factBox.textContent = "";
   input.value = "";
-  input.style.display = selectedMode === "capital" && specialMode === "type" ? "block" : "none";
+  input.style.display = "none";
   options.innerHTML = "";
+  document.getElementById("next-button").style.display = "none";
 
   let questionText = "";
-  let correct = "";
+  let correctAnswer = "";
 
   if (selectedMode === "capital") {
-    questionText = `Was ist die Hauptstadt von ${q.country}?`;
-    correct = q.capital;
+    if (specialMode === "reverse") {
+      // Rückwärts-Modus: Hauptstadt vorgeben, Land benennen
+      questionText = `Welches Land hat die Hauptstadt ${q.capital}?`;
+      correctAnswer = q.country;
+    } else {
+      questionText = `Was ist die Hauptstadt von ${q.country}?`;
+      correctAnswer = q.capital;
+    }
   } else if (selectedMode === "population") {
     questionText = `Welches Land hat mehr Einwohner: ${q.country} oder ...?`;
-    correct = q.country;
   } else if (selectedMode === "area") {
     questionText = `Welches Land ist flächenmäßig größer: ${q.country} oder ...?`;
-    correct = q.country;
   } else if (selectedMode === "gdp") {
     questionText = `Welches Land hat das höhere BIP: ${q.country} oder ...?`;
-    correct = q.country;
   }
 
   prompt.textContent = questionText;
 
-  if (selectedMode === "capital" && specialMode !== "type") {
-    const choices = shuffle([q.capital, ...shuffle(countries).slice(0, 3).map(c => c.capital)]);
-    choices.forEach(c => {
-      const btn = document.createElement("button");
-      btn.textContent = c;
-      btn.onclick = () => checkAnswer(c);
-      options.appendChild(btn);
-    });
-  } else if (specialMode === "type") {
+  if (selectedMode === "capital" && (specialMode === "normal" || specialMode === "lifes" || specialMode === "suddendeath" || specialMode === "blitz" || specialMode === "reverse")) {
+    if (specialMode === "reverse" || specialMode === "blitz" || specialMode === "suddendeath" || specialMode === "lifes" || specialMode === "normal") {
+      if (specialMode === "reverse") {
+        // bei reverse ist die Frage anders, Antwort ist Land
+        input.style.display = "block";
+        input.focus();
+        input.onchange = () => checkAnswer(input.value);
+      } else {
+        // Multiple Choice mit 4 Optionen (Hauptstadt)
+        const choices = shuffle([correctAnswer, ...shuffle(countries).filter(c => c.capital !== correctAnswer).slice(0, 3).map(c => c.capital)]);
+        choices.forEach(c => {
+          const btn = document.createElement("button");
+          btn.textContent = c;
+          btn.onclick = () => checkAnswer(c);
+          options.appendChild(btn);
+        });
+      }
+    }
+  } else if (selectedMode === "capital" && specialMode === "type") {
+    input.style.display = "block";
+    input.focus();
     input.onchange = () => checkAnswer(input.value);
   } else {
+    // Vergleichsmodus mit 2 Ländern
     const other = shuffle(countries.filter(c => c.country !== q.country))[0];
-    const correctValue = q[selectedMode];
-    const otherValue = other[selectedMode];
-    const isCorrect = correctValue >= otherValue ? q.country : other.country;
+    let correctValue = q[selectedMode];
+    let otherValue = other[selectedMode];
+    let isCorrectCountry = correctValue >= otherValue ? q.country : other.country;
 
     const pair = shuffle([q.country, other.country]);
     pair.forEach(c => {
       const btn = document.createElement("button");
       btn.textContent = c;
-      btn.onclick = () => checkAnswer(c, isCorrect, q, other);
+      btn.onclick = () => checkAnswer(c, isCorrectCountry, q, other);
       options.appendChild(btn);
     });
   }
@@ -132,81 +160,21 @@ function showQuestion() {
 
 function checkAnswer(answer, correctValue = null, q = null, other = null) {
   const feedback = document.getElementById("feedback");
+  const factBox = document.getElementById("fact-box");
   let correctAnswer = "";
 
   if (selectedMode === "capital") {
     correctAnswer = questions[currentIndex].capital.toLowerCase();
-    const cleaned = answer.trim().toLowerCase();
-    if (specialMode === "type") {
-      if (correctAnswer.includes(cleaned) || cleaned.includes(correctAnswer) || levenshteinDistance(cleaned, correctAnswer) <= 2) {
+    let cleanedAnswer = answer.trim().toLowerCase();
+
+    if (specialMode === "reverse") {
+      correctAnswer = questions[currentIndex].country.toLowerCase();
+    }
+
+    if (specialMode === "type" || specialMode === "reverse") {
+      // Tippfehlertoleranz
+      if (correctAnswer.includes(cleanedAnswer) || cleanedAnswer.includes(correctAnswer) || levenshteinDistance(cleanedAnswer, correctAnswer) <= 2) {
         feedback.textContent = "✅ Richtig!";
         score++;
       } else {
-        feedback.textContent = `❌ Falsch! Richtig: ${questions[currentIndex].capital}`;
-        if (specialMode === "sudden") {
-          endGame();
-          return;
-        }
-      }
-    } else {
-      if (cleaned === correctAnswer.toLowerCase()) {
-        feedback.textContent = "✅ Richtig!";
-        score++;
-      } else {
-        feedback.textContent = `❌ Falsch! Richtig: ${questions[currentIndex].capital}`;
-        if (specialMode === "sudden") {
-          endGame();
-          return;
-        }
-      }
-    }
-  } else {
-    if (answer === correctValue) {
-      feedback.textContent = "✅ Richtig!";
-      score++;
-    } else {
-      feedback.textContent = `❌ Falsch! Richtige Antwort: ${correctValue}`;
-      if (specialMode === "sudden") {
-        endGame();
-        return;
-      }
-    }
-
-    if (showFacts && q && other) {
-      feedback.textContent += `\n${q.country}: ${q[selectedMode].toLocaleString()} | ${other.country}: ${other[selectedMode].toLocaleString()}`;
-    }
-  }
-
-  currentIndex++;
-  if (currentIndex >= questions.length) {
-    endGame();
-  } else {
-    setTimeout(showQuestion, 1000);
-  }
-}
-
-function endGame() {
-  stopTimer();
-  document.getElementById("quiz").style.display = "none";
-  document.getElementById("result").style.display = "block";
-  document.getElementById("summary").textContent = `🎉 ${playerName}, du hast ${score} von ${questions.length} Punkten in ${elapsedTime} Sekunden erreicht.`;
-}
-
-function restartGame() {
-  document.getElementById("result").style.display = "none";
-  document.getElementById("intro").style.display = "block";
-}
-
-// Hilfsfunktion für Tippfehlertoleranz
-function levenshteinDistance(a, b) {
-  const dp = Array.from({ length: a.length + 1 }, () => Array(b.length + 1).fill(0));
-  for (let i = 0; i <= a.length; i++) dp[i][0] = i;
-  for (let j = 0; j <= b.length; j++) dp[0][j] = j;
-  for (let i = 1; i <= a.length; i++) {
-    for (let j = 1; j <= b.length; j++) {
-      if (a[i - 1] === b[j - 1]) dp[i][j] = dp[i - 1][j - 1];
-      else dp[i][j] = Math.min(dp[i - 1][j - 1], dp[i][j - 1], dp[i - 1][j]) + 1;
-    }
-  }
-  return dp[a.length][b.length];
-}
+        feedback.textContent = `❌ Falsch! R
