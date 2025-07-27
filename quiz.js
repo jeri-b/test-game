@@ -140,11 +140,17 @@ function startGame(selectedMode) {
   const playerInput = document.getElementById("player-name").value;
   specialMode = document.getElementById("special-mode").value;
 
-  if (!playerInput.trim()) {
-    alert("Bitte gib deinen Namen ein.");
-    return;
-  }
-  player = playerInput.trim();
+  const playerInput = document.getElementById("player-name").value.trim();
+specialMode = document.getElementById("special-mode").value;
+
+const randomNames = [
+  "Anna", "Lukas", "Marie", "Max", "Emma",
+  "Paul", "Lea", "Ben", "Sophie", "Finn",
+  "Mia", "Noah", "Jonas", "Laura", "Tim",
+  "Nina", "Felix", "Lena", "Tom", "Jana"
+];
+
+player = playerInput || randomNames[Math.floor(Math.random() * randomNames.length)];
 
   // Länder laden nach Region
   countries = {};
