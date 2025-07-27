@@ -137,12 +137,18 @@ function startGame(selectedMode) {
   mode = selectedMode;
   const inputCount = document.getElementById("question-count").value;
   const region = document.getElementById("region-select").value;
-  const playerInput = document.getElementById("player-name").value;
-  specialMode = document.getElementById("special-mode").value;
+const playerInput = document.getElementById("player-name").value.trim();
+specialMode = document.getElementById("special-mode").value;
 
-  if (!playerInput.trim()) {
-   const randomNames = ["Anna", "Lukas", "Marie", "Johannes", "Emma", "Gimi", "Lea", "JB", "Sophie", "Finn"];
+const randomNames = [
+  "Anna", "Lukas", "Marie", "Johannes", "Emma",
+  "Gimi", "Lea", "JB", "Sophie", "Finn",
+  "Mia", "Noah", "Jonas", "Laura", "Tim",
+  "Nina", "Felix", "Lena", "Tom", "Jana"
+];
 
+player = playerInput || randomNames[Math.floor(Math.random() * randomNames.length)];
+  
 const playerInput = document.getElementById("player-name").value.trim();
 player = playerInput || randomNames[Math.floor(Math.random() * randomNames.length)];
     return;
