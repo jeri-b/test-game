@@ -2,53 +2,55 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>🌍 Hauptstadtquiz</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hauptstadtquiz</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="container" id="start-screen">
-    <h1>🌍 Hauptstadtquiz</h1>
-    <p>Wie heißt du?</p>
-    <input type="text" id="player-name" placeholder="Dein Name" />
+  <div id="start-screen">
+    <h1>🧠 Hauptstadt-Ratespiel 🌍</h1>
 
-    <p>Wähle deinen Spielmodus:</p>
-    <button onclick="startGame('multiple')">🟢 Einfach (Multiple Choice)</button>
-    <button onclick="startGame('text')">🔴 Schwer (Eingabe)</button>
+    <label for="player-name">👤 Dein Name:</label><br/>
+    <input type="text" id="player-name" placeholder="Name eingeben"/><br/><br/>
 
-    <p>Welche Länder willst du?</p>
+    <label for="region-select">🌎 Region wählen:</label><br/>
     <select id="region-select">
-      <option value="world">🌍 Alle Länder</option>
-      <option value="europe">🇪🇺 Europa</option>
-      <option value="america">🌎 Amerika</option>
-      <option value="asia">🌏 Asien</option>
-      <option value="africa">🌍 Afrika</option>
-    </select>
+      <option value="world">Alle</option>
+      <option value="europe">Europa</option>
+      <option value="america">Amerika</option>
+      <option value="asia">Asien</option>
+      <option value="africa">Afrika</option>
+    </select><br/><br/>
 
-    <p>Anzahl der Fragen:</p>
-    <input type="number" id="question-count" min="1" placeholder="z. B. 10 oder leer für alle" />
-
-    <p>Spezialmodus:</p>
+    <label for="special-mode">🎮 Spezial-Modus:</label><br/>
     <select id="special-mode">
-      <option value="normal">🎯 Normal</option>
-      <option value="blitz">⚡ Blitzrunde (10 Sek)</option>
+      <option value="normal">Normal</option>
+      <option value="blitz">⏱️ Blitzrunde (10s Zeit)</option>
       <option value="lifes">❤️ Fehler-Modus (3 Leben)</option>
-      <option value="reverse">🔁 Rückwärts (Hauptstadt → Land)</option>
-    </select>
+      <option value="reverse">🔄 Rückwärts (Stadt → Land)</option>
+    </select><br/><br/>
+
+    <label for="question-count">🧮 Wie viele Fragen?</label><br/>
+    <input type="number" id="question-count" min="1" placeholder="z. B. 10"/><br/><br/>
+
+    <button id="start-multiple">Starte mit Auswahl</button>
+    <button id="start-input">Starte mit Texteingabe</button>
   </div>
 
-  <div class="container" id="quiz-screen" style="display: none;">
+  <div id="quiz-screen" style="display:none;">
     <div id="timer">🕒 0 Sekunden</div>
-    <div id="question-box"></div>
+    <div id="lives-display"></div>
+    <h2 id="question-box">Frage erscheint hier...</h2>
     <div id="answer-box"></div>
-    <button id="next-button" onclick="nextQuestion()" style="display:none;">Nächste Frage</button>
+    <button id="next-button" style="display:none;">Nächste Frage</button>
   </div>
 
-  <div class="container" id="result-screen" style="display: none;">
-    <h2>🎉 Fertig!</h2>
+  <div id="result-screen" style="display:none;">
+    <h2>🎉 Ergebnis</h2>
     <p id="score-text"></p>
     <p id="time-text"></p>
-    <p id="best-result"></p>
-    <button onclick="location.reload()">🔁 Neu starten</button>
+    <p id="surprise-text" style="font-weight:bold; color:green;"></p>
+    <button id="restart-button">🔁 Neustarten</button>
   </div>
 
   <script src="quiz.js"></script>
