@@ -141,7 +141,10 @@ function startGame(selectedMode) {
   specialMode = document.getElementById("special-mode").value;
 
   if (!playerInput.trim()) {
-    alert("Bitte gib deinen Namen ein.");
+   const randomNames = ["Anna", "Lukas", "Marie", "Johannes", "Emma", "Gimi", "Lea", "JB", "Sophie", "Finn"];
+
+const playerInput = document.getElementById("player-name").value.trim();
+player = playerInput || randomNames[Math.floor(Math.random() * randomNames.length)];
     return;
   }
   player = playerInput.trim();
