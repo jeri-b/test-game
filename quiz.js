@@ -137,43 +137,49 @@ let specialMode = "normal";
 let lives = 3;
 let reverse = false;
 
+// --- Funktionen ---
 function startGame(selectedMode) {
   mode = selectedMode;
   const inputCount = document.getElementById("question-count").value;
   const region = document.getElementById("region-select").value;
-  const playerInput = document.getElementById("player-name").value.trim();
+  const playerInput = document.getElementById("player-name").value;
   specialMode = document.getElementById("special-mode").value;
 
-  player = playerInput || randomNames[Math.floor(Math.random() * randomNames.length)];
+  // Zufallsnamen, wenn leer
+  player = playerInput.trim() || getRandomName();
 
-  // Länder auswählen
-  countries = {};
-  if (region === "world") {
-    for (const reg in allCountries) {
-      Object.assign(countries, allCountries[reg]);
-    }
-  } else {
-    countries = allCountries[region] || {};
-  }
-
+  // Länder nach Region laden
+  countries = getCountriesByRegion(region);
   keys = Object.keys(countries);
   maxQuestions = inputCount ? parseInt(inputCount) : keys.length;
   keys = shuffle([...keys]).slice(0, maxQuestions);
 
-  reverse = specialMode === "reverse";
-  lives = specialMode === "sudden" ? 1 : 3;
-
-  score = 0;
-  currentIndex = 0;
-  startTime = Date.now();
-  clearInterval(timerInterval);
-  timerInterval = setInterval(updateTimer, 1000);
+  reverse = (specialMode === "reverse");
+  lives = (specialMode === "lifes") ? 3 : 0;
 
   document.getElementById("start-screen").style.display = "none";
   document.getElementById("quiz-screen").style.display = "block";
   document.getElementById("result-screen").style.display = "none";
 
+  score = 0;
+  currentIndex = 0;
+  startTime = Date.now();
+  timerInterval = setInterval(updateTimer, 1000);
+
+  document.getElementById("lives-display").innerText = (lives > 0) ? `❤️ Leben: ${lives}` : "";
+
   nextQuestion();
+}
+
+function getCountriesByRegion(region) {
+  const data = {}; // <--- hier kommt die Länderliste rein
+  if (region === "world") {
+    for (const reg in data) Object.assign(countries, data[reg]);
+    return countries;
+  } else {
+    const regKey = region.charAt(0).toUpperCase() + region.slice(1);
+    return data[regKey] || {};
+  }
 }
 
 function updateTimer() {
@@ -190,20 +196,20 @@ function shuffle(arr) {
 }
 
 function nextQuestion() {
-  const box = document.getElementById("answer-box");
-  document.getElementById("lives-display").innerText = `🔢 Punkte: ${score} / ${maxQuestions}${specialMode === "sudden" ? "" : ` | ❤️ Leben: ${lives}`}`;
-  box.innerHTML = "";
   document.getElementById("next-button").style.display = "none";
+  const box = document.getElementById("answer-box");
+  box.innerHTML = "";
 
-  if (currentIndex >= keys.length || lives <= 0) {
+  if (currentIndex >= keys.length || (specialMode === "lifes" && lives <= 0)) {
     return endGame();
   }
 
-  const land = keys[currentIndex];
-  const hauptstadt = countries[land];
-  const frage = reverse
+  let land = keys[currentIndex];
+  let hauptstadt = countries[land];
+  let frage = reverse
     ? `Welches Land hat die Hauptstadt "${hauptstadt}"?`
     : `Was ist die Hauptstadt von ${land}?`;
+
   document.getElementById("question-box").innerText = frage;
 
   if (mode === "multiple") {
@@ -242,8 +248,8 @@ function nextQuestion() {
 }
 
 function getRandomAnswers(correct) {
-  let allAnswers = reverse ? Object.keys(countries) : Object.values(countries);
-  return shuffle(allAnswers.filter(a => a !== correct)).slice(0, 3);
+  const pool = reverse ? Object.keys(countries) : Object.values(countries);
+  return shuffle(pool.filter(a => a !== correct)).slice(0, 3);
 }
 
 function normalize(str) {
@@ -251,29 +257,34 @@ function normalize(str) {
 }
 
 function checkAnswer(given, correct) {
-  const normalizedGiven = normalize(given || "");
+  const normalizedGiven = normalize(given.trim());
   const normalizedCorrect = normalize(correct);
-  let isCorrect =
-    normalizedGiven === normalizedCorrect ||
-    (normalizedCorrect.includes(normalizedGiven) && normalizedGiven.length >= 4);
+
+  let isCorrect = false;
+  if (normalizedGiven === normalizedCorrect) isCorrect = true;
+  else if (normalizedCorrect.includes(normalizedGiven) && normalizedGiven.length >= 4) isCorrect = true;
+
+  const box = document.getElementById("answer-box");
 
   if (isCorrect) {
     score++;
     currentIndex++;
-    setTimeout(() => nextQuestion(), 300);
+    nextQuestion(); // gleich zur nächsten
+    return;
   } else {
-    lives--;
-    const box = document.getElementById("answer-box");
-    const msg = document.createElement("p");
-    msg.innerText = `❌ Falsch! Die richtige Antwort ist: ${correct}`;
-    msg.style.fontWeight = "bold";
-    box.appendChild(msg);
-    document.getElementById("next-button").style.display = "inline-block";
+    if (specialMode === "lifes") {
+      lives--;
+      document.getElementById("lives-display").innerText = `❤️ Leben: ${lives}`;
+    }
   }
 
-  if (currentIndex >= keys.length || lives <= 0) {
-    setTimeout(endGame, 500);
-  }
+  currentIndex++;
+  document.getElementById("next-button").style.display = "inline-block";
+
+  const msg = document.createElement("p");
+  msg.innerText = `❌ Falsch! Die richtige Antwort ist: ${correct}`;
+  msg.style.fontWeight = "bold";
+  box.appendChild(msg);
 }
 
 function endGame() {
@@ -284,6 +295,9 @@ function endGame() {
 
   document.getElementById("score-text").innerText = `${player}, du hast ${score} von ${keys.length} richtig beantwortet.`;
   document.getElementById("time-text").innerText = `⏱️ Zeit: ${seconds} Sekunden`;
+
+  document.getElementById("surprise-text").innerText =
+    (score === keys.length) ? "🎉 Perfekt! Du bist ein Hauptstadt-Profi! 🌟" : "";
 }
 
 function restartGame() {
@@ -298,9 +312,15 @@ function restartGame() {
   score = 0;
   currentIndex = 0;
   reverse = false;
-  lives = 3;
+  lives = 0;
 }
 
+function getRandomName() {
+  const names = ["Anna", "Ben", "Clara", "David", "Eva", "Felix", "Greta", "Hannah", "Jan", "Lina", "Milo", "Nina"];
+  return names[Math.floor(Math.random() * names.length)];
+}
+
+// --- Event Listener ---
 document.getElementById("start-multiple").addEventListener("click", () => startGame("multiple"));
 document.getElementById("start-input").addEventListener("click", () => startGame("input"));
 document.getElementById("next-button").addEventListener("click", () => nextQuestion());
