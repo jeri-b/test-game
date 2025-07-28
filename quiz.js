@@ -172,13 +172,15 @@ function startGame(selectedMode) {
 }
 
 function getCountriesByRegion(region) {
-  const data = {}; // <--- hier kommt die Länderliste rein
   if (region === "world") {
-    for (const reg in data) Object.assign(countries, data[reg]);
-    return countries;
+    let combined = {};
+    for (const reg in allCountries) {
+      Object.assign(combined, allCountries[reg]);
+    }
+    return combined;
   } else {
     const regKey = region.charAt(0).toUpperCase() + region.slice(1);
-    return data[regKey] || {};
+    return allCountries[regKey] || {};
   }
 }
 
